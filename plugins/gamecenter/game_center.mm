@@ -43,14 +43,22 @@
 
 #import <GameKit/GameKit.h>
 
+static void *_get_ptr(const GodotByteArray& arr);
+
 #if VERSION_MAJOR == 4
 typedef PackedStringArray GodotStringArray;
 typedef PackedInt32Array GodotIntArray;
 typedef PackedFloat32Array GodotFloatArray;
+static void *_get_ptr(const GodotByteArray& arr) {
+	return (void *) arr.ptr();
+}
 #else
 typedef PoolStringArray GodotStringArray;
 typedef PoolIntArray GodotIntArray;
 typedef PoolRealArray GodotFloatArray;
+static void *_get_ptr(const GodotByteArray& arr) {
+	return (void *) arr.read().ptr();
+}
 #endif
 
 GameCenter *GameCenter::instance = NULL;
@@ -381,7 +389,7 @@ Error GameCenter::save_game_data(Dictionary p_params) {
 	GodotByteArray data = p_params["data"];
 
 	NSString *nsname = [[NSString alloc] initWithUTF8String:name.utf8().get_data()];
-	NSData *nsdata = [[NSData alloc] initWithBytes:data.ptr() length:data.size()];
+	NSData *nsdata = [[NSData alloc] initWithBytes:_get_ptr(data) length:data.size()];
 	[GKLocalPlayer.localPlayer saveGameData:nsdata withName:nsname completionHandler:^(GKSavedGame * _Nullable savedGame, NSError * _Nullable error) {
 		Dictionary ret;
 		ret["type"] = "save_game_data";
@@ -463,7 +471,7 @@ Error GameCenter::resolve_conflicting_saved_games(Dictionary p_params) {
 		}
 	}
 
-	NSData *nsdata = [[NSData alloc] initWithBytes:data.ptr() length:data.size()];
+	NSData *nsdata = [[NSData alloc] initWithBytes:_get_ptr(data) length:data.size()];
 	[GKLocalPlayer.localPlayer resolveConflictingSavedGames:nssaved_games withData:nsdata completionHandler:^(NSArray<GKSavedGame *> * _Nullable savedGames, NSError * _Nullable error) {
 		Dictionary ret;
 		ret["type"] = "resolve_conflicting_saved_games";

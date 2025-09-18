@@ -34,10 +34,18 @@
 
 #import <GameKit/GameKit.h>
 
+static void *_get_ptrw(GodotByteArray& arr);
+
 #if VERSION_MAJOR == 4
 typedef PackedByteArray GodotByteArray;
+static void *_get_ptrw(GodotByteArray& arr) {
+	return (void *) arr.ptrw();
+}
 #else
 typedef PoolByteArray GodotByteArray;
+static void *_get_ptrw(GodotByteArray& arr) {
+	return (void *) arr.write().ptr();
+}
 #endif
 
 void GameCenterSavedGame::_bind_methods() {
@@ -73,7 +81,7 @@ void GameCenterSavedGame::load_data() {
 			GodotByteArray gdata;
 			if (data.bytes) {
 				gdata.resize(data.length);
-				memcpy(gdata.ptrw(), data.bytes, data.length);
+				memcpy(_get_ptrw(gdata), data.bytes, data.length);
 			}
 			GameCenter::get_singleton()->game_center_saved_game_loaded(this, gdata, error.code, [error.localizedDescription UTF8String]);
 		}
