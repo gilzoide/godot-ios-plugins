@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  game_center.h                                                        */
+/*  game_center_saved_game.mm                                            */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,62 +28,62 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef GAME_CENTER_H
-#define GAME_CENTER_H
+#include "game_center_saved_game.h"
 
-#include "core/version.h"
+#include "game_center.h"
+
+#import <GameKit/GameKit.h>
 
 #if VERSION_MAJOR == 4
-#include "core/object/class_db.h"
 typedef PackedByteArray GodotByteArray;
 #else
-#include "core/object.h"
 typedef PoolByteArray GodotByteArray;
 #endif
 
-class GameCenterSavedGame;
+void GameCenterSavedGame::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("get_name"), &GameCenterSavedGame::get_name);
+	ClassDB::bind_method(D_METHOD("get_modification_date"), &GameCenterSavedGame::get_modification_date);
+	ClassDB::bind_method(D_METHOD("get_device_name"), &GameCenterSavedGame::get_device_name);
+	ClassDB::bind_method(D_METHOD("load_data"), &GameCenterSavedGame::load_data);
 
-class GameCenter : public Object {
-
-	GDCLASS(GameCenter, Object);
-
-	static GameCenter *instance;
-	static void _bind_methods();
-
-	List<Variant> pending_events;
-
-	bool authenticated;
-
-	void return_connect_error(const char *p_error_description);
-
-public:
-	Error authenticate();
-	bool is_authenticated();
-
-	Error post_score(Dictionary p_score);
-	Error award_achievement(Dictionary p_params);
-	void reset_achievements();
-	void request_achievements();
-	void request_achievement_descriptions();
-	Error show_game_center(Dictionary p_params);
-	Error request_identity_verification_signature();
-
-	Error save_game_data(Dictionary p_params);
-	Error fetch_saved_games();
-	Error delete_saved_games(String p_name);
-	Error resolve_conflicting_saved_games(Dictionary p_params);
-
-	void game_center_closed();
-	void game_center_saved_game_loaded(GameCenterSavedGame *saved_game, const GodotByteArray& data, int64_t error_code, const char *error_description);
-	void player_has_conflicting_saved_games(const Array& saved_games);
-
-	int get_pending_event_count();
-	Variant pop_pending_event();
-
-	static GameCenter *get_singleton();
-
-	GameCenter();
-	~GameCenter();
+	ADD_PROPERTY(PropertyInfo(Variant::STRING, "name"), "", "get_name");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "modification_date"), "", "get_modification_date");
+	ADD_PROPERTY(PropertyInfo(Variant::STRING, "device_name"), "", "get_device_name");
 };
 
-#endif
+String GameCenterSavedGame::get_name() const {
+	return [saved_game.name UTF8String];
+}
+
+int64_t GameCenterSavedGame::get_modification_date() const {
+	return saved_game.modificationDate.timeIntervalSince1970;
+}
+
+String GameCenterSavedGame::get_device_name() const {
+	return [saved_game.deviceName UTF8String];
+}
+
+GKSavedGame *GameCenterSavedGame::get_saved_game() const {
+	return saved_game;
+}
+
+void GameCenterSavedGame::load_data() {
+	[saved_game loadDataWithCompletionHandler:^(NSData * _Nullable data, NSError * _Nullable error) {
+		if (GameCenter::get_singleton()) {
+			GodotByteArray gdata;
+			if (data.bytes) {
+				gdata.resize(data.length);
+				memcpy(gdata.ptrw(), data.bytes, data.length);
+			}
+			GameCenter::get_singleton()->game_center_saved_game_loaded(this, gdata, error.code, [error.localizedDescription UTF8String]);
+		}
+	}];
+}
+
+GameCenterSavedGame::GameCenterSavedGame(GKSavedGame *saved_game) : saved_game(saved_game) {}
+
+GameCenterSavedGame::~GameCenterSavedGame() {
+	if (saved_game) {
+		saved_game = nil;
+	}
+}

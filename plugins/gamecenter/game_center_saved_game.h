@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  game_center.h                                                        */
+/*  game_center_saved_game.h                                             */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,62 +28,39 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef GAME_CENTER_H
-#define GAME_CENTER_H
+#ifndef GAME_CENTER_SAVED_GAME_H
+#define GAME_CENTER_SAVED_GAME_H
 
 #include "core/version.h"
 
 #if VERSION_MAJOR == 4
-#include "core/object/class_db.h"
-typedef PackedByteArray GodotByteArray;
+#include "core/object/ref_counted.h"
 #else
-#include "core/object.h"
-typedef PoolByteArray GodotByteArray;
+#include "core/reference.h"
+typedef Reference RefCounted;
 #endif
 
-class GameCenterSavedGame;
+@class GKSavedGame;
 
-class GameCenter : public Object {
+class GameCenterSavedGame : public RefCounted {
 
-	GDCLASS(GameCenter, Object);
+	GDCLASS(GameCenterSavedGame, RefCounted);
 
-	static GameCenter *instance;
-	static void _bind_methods();
+    static void _bind_methods();
 
-	List<Variant> pending_events;
-
-	bool authenticated;
-
-	void return_connect_error(const char *p_error_description);
+    GKSavedGame *saved_game;
 
 public:
-	Error authenticate();
-	bool is_authenticated();
+    String get_name() const;
+    int64_t get_modification_date() const;
+    String get_device_name() const;
 
-	Error post_score(Dictionary p_score);
-	Error award_achievement(Dictionary p_params);
-	void reset_achievements();
-	void request_achievements();
-	void request_achievement_descriptions();
-	Error show_game_center(Dictionary p_params);
-	Error request_identity_verification_signature();
+    GKSavedGame *get_saved_game() const;
 
-	Error save_game_data(Dictionary p_params);
-	Error fetch_saved_games();
-	Error delete_saved_games(String p_name);
-	Error resolve_conflicting_saved_games(Dictionary p_params);
+    void load_data();
 
-	void game_center_closed();
-	void game_center_saved_game_loaded(GameCenterSavedGame *saved_game, const GodotByteArray& data, int64_t error_code, const char *error_description);
-	void player_has_conflicting_saved_games(const Array& saved_games);
-
-	int get_pending_event_count();
-	Variant pop_pending_event();
-
-	static GameCenter *get_singleton();
-
-	GameCenter();
-	~GameCenter();
+    GameCenterSavedGame(GKSavedGame *saved_game);
+    ~GameCenterSavedGame();
 };
 
-#endif
+#endif // GAME_CENTER_SAVED_GAME_H
