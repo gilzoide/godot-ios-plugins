@@ -458,9 +458,8 @@ Error GameCenter::delete_saved_games(String p_name) {
 
 Error GameCenter::resolve_conflicting_saved_games(Dictionary p_params) {
 	ERR_FAIL_COND_V(![GKLocalPlayer instancesRespondToSelector:@selector(resolveConflictingSavedGames:withData:completionHandler:)], ERR_UNAVAILABLE);
-	ERR_FAIL_COND_V(!p_params.has("name") || !p_params.has("saved_games") || !p_params.has("data"), ERR_INVALID_PARAMETER);
+	ERR_FAIL_COND_V(!p_params.has("saved_games") || !p_params.has("data"), ERR_INVALID_PARAMETER);
 
-	String name = p_params["name"];
 	Array saved_games = p_params["saved_games"];
 	GodotByteArray data = p_params["data"];
 
@@ -475,7 +474,6 @@ Error GameCenter::resolve_conflicting_saved_games(Dictionary p_params) {
 	[GKLocalPlayer.localPlayer resolveConflictingSavedGames:nssaved_games withData:nsdata completionHandler:^(NSArray<GKSavedGame *> * _Nullable savedGames, NSError * _Nullable error) {
 		Dictionary ret;
 		ret["type"] = "resolve_conflicting_saved_games";
-		ret["name"] = name;
 		if (savedGames) {
 			ret["result"] = "ok";
 			Array array;
