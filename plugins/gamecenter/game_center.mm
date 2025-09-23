@@ -559,6 +559,7 @@ GameCenter::GameCenter() {
 
 GameCenter::~GameCenter() {
 	if (gameCenterDelegate) {
+		[GKLocalPlayer.localPlayer unregisterListener:gameCenterDelegate];
 		gameCenterDelegate = nil;
 	}
 }
