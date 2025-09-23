@@ -53,4 +53,10 @@
 	}
 }
 
+- (void)player:(GKPlayer *)player didModifySavedGame:(GKSavedGame *)savedGame {
+	if (GameCenter::get_singleton()) {
+		GameCenter::get_singleton()->player_did_modify_saved_game(memnew(GameCenterSavedGame(savedGame)));
+	}
+}
+
 @end

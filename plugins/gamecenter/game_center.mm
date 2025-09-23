@@ -525,6 +525,14 @@ void GameCenter::player_has_conflicting_saved_games(const Array& saved_games) {
 	pending_events.push_back(ret);
 }
 
+void GameCenter::player_did_modify_saved_game(GameCenterSavedGame *saved_game) {
+	Dictionary ret;
+	ret["type"] = "player_did_modify_saved_game";
+	ret["result"] = "ok";
+	ret["saved_game"] = saved_game;
+	pending_events.push_back(ret);
+}
+
 int GameCenter::get_pending_event_count() {
 	return pending_events.size();
 };
