@@ -88,6 +88,10 @@ void GameCenterSavedGame::load_data() {
 	}];
 }
 
+String GameCenterSavedGame::to_string() {
+	return vformat("<GameCenterSavedGame: name=%s, modification_date=%d, device_name=%s>", get_name(), get_modification_date(), get_device_name());
+}
+
 GameCenterSavedGame::GameCenterSavedGame(GKSavedGame *saved_game) : saved_game(saved_game) {}
 
 GameCenterSavedGame::~GameCenterSavedGame() {

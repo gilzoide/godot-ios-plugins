@@ -59,6 +59,8 @@ public:
 
     void load_data();
 
+    virtual String to_string() override;
+
     GameCenterSavedGame(GKSavedGame *saved_game);
     ~GameCenterSavedGame();
 };
