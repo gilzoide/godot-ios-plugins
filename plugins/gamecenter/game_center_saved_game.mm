@@ -76,6 +76,9 @@ GKSavedGame *GameCenterSavedGame::get_saved_game() const {
 }
 
 void GameCenterSavedGame::load_data() {
+	// make sure a reference is held while the async operation is in progress 
+	reference();
+
 	[saved_game loadDataWithCompletionHandler:^(NSData * _Nullable data, NSError * _Nullable error) {
 		if (GameCenter::get_singleton()) {
 			GodotByteArray gdata;
@@ -85,6 +88,9 @@ void GameCenterSavedGame::load_data() {
 			}
 			GameCenter::get_singleton()->game_center_saved_game_loaded(this, gdata, error.code, [error.localizedDescription UTF8String]);
 		}
+
+		// release the reference held for the async operation
+		unreference();
 	}];
 }
 
