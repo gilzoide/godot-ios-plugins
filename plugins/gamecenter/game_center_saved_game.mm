@@ -33,6 +33,7 @@
 #include "game_center.h"
 
 #import <GameKit/GameKit.h>
+#import <sys/utsname.h>
 
 static void *_get_ptrw(GodotByteArray& arr);
 
@@ -52,6 +53,7 @@ void GameCenterSavedGame::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_name"), &GameCenterSavedGame::get_name);
 	ClassDB::bind_method(D_METHOD("get_modification_date"), &GameCenterSavedGame::get_modification_date);
 	ClassDB::bind_method(D_METHOD("get_device_name"), &GameCenterSavedGame::get_device_name);
+	ClassDB::bind_method(D_METHOD("is_current_device"), &GameCenterSavedGame::is_current_device);
 	ClassDB::bind_method(D_METHOD("load_data"), &GameCenterSavedGame::load_data);
 
 	ADD_PROPERTY(PropertyInfo(Variant::STRING, "name"), "", "get_name");
@@ -69,6 +71,19 @@ int64_t GameCenterSavedGame::get_modification_date() const {
 
 String GameCenterSavedGame::get_device_name() const {
 	return [saved_game.deviceName UTF8String];
+}
+
+bool GameCenterSavedGame::is_current_device() const {
+	if ([saved_game.deviceName isEqualToString:UIDevice.currentDevice.name]) {
+		return true;
+	}
+	
+	// Fallback to checking device model, in case running on iOS 16+ and app doesn't have com.apple.developer.device-information.user-assigned-device-name entitlement.
+	// Note that running iPad apps on macOS via Catalyst will return "iPad..." here and could be a false negative. I don't really know how to handle that case properly.
+	struct utsname systemInfo;
+	uname(&systemInfo);
+	NSString *deviceModel = [NSString stringWithCString:systemInfo.machine encoding:NSUTF8StringEncoding];
+	return [saved_game.deviceName isEqualToString:deviceModel];
 }
 
 GKSavedGame *GameCenterSavedGame::get_saved_game() const {

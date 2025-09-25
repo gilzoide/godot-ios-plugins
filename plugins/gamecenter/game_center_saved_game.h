@@ -54,6 +54,7 @@ public:
     String get_name() const;
     int64_t get_modification_date() const;
     String get_device_name() const;
+    bool is_current_device() const;
 
     GKSavedGame *get_saved_game() const;
 
